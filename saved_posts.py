@@ -20,7 +20,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 saved_posts = Blueprint('sp', __name__, template_folder='templates')
 
-reddit = praw.Reddit('saved', redirect_uri='http://localhost:5000/saved_posts/callback')
+reddit = praw.Reddit('saved', redirect_uri='https://maxtimkovich.com/saved_posts/callback')
 
 date_str = '%d-%m-%Y %H:%M'
 
@@ -33,7 +33,7 @@ def generate_state():
 def record_params(setup_state):
     app = setup_state.app
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///saved_posts/saved.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/protected/saved.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)

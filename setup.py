@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from models import db, User, Post
 from flask import Flask
 import os
