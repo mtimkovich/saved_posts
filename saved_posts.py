@@ -62,8 +62,7 @@ def callback():
     return render_template('sp/callback.html', redirect=url_for('sp.saved'))
 
 
-@saved_posts.route('/clear_cache')
-def clear_cache():
+def delete_user():
     refresh = session.get('refresh')
 
     if refresh is None:
@@ -73,6 +72,18 @@ def clear_cache():
     u = User.query.filter_by(name=reddit.user.me().name).first()
     db.session.delete(u)
     db.session.commit()
+
+
+@saved_posts.route('/delete')
+def delete():
+    delete_user()
+
+    return "removed user's saved posts from cache"
+
+
+@saved_posts.route('/clear_cache')
+def clear_cache():
+    delete_user()
 
     return redirect(url_for('sp.saved'))
 

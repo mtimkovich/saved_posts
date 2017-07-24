@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block head %}
 <style>
-li {
-    padding-bottom: .5rem;
+#preview {
+    border: 1px solid #d2d4d7;
+    border-radius: 10px;
 }
 </style>
 {% endblock %}
@@ -12,8 +13,14 @@ li {
 {% block content %}
         <p class="lead">Organizes your saved reddit posts!</p>
 
-        <center>`
-            <a class="btn btn-primary" href="{{auth_url}}">Go!</a>
-        </center>`
+        <img class="img-responsive" id="preview" src="/img/saved_preview.png">
+
+        <p style="padding-top: 1rem">If you're like me, you have a couple hundred things in your "Saved" section on reddit.</p>
+
+        <p>Saved Posts nicely organizes all your saved submissions and comments by subreddit for easy browsing.</p>
+
+        <center>
+            <a class="btn btn-success btn-lg" href="{{auth_url}}">Try it out!</a>
+        </center>
     </div>
 {% endblock %}

@@ -15,7 +15,7 @@ h5 {
     <p class="lead">You can save this page by hitting Ctrl-S</p>
 
     <button type="button" class="btn btn-danger" onclick="loading();">Clear Cache</button>
-    <p class="text-muted">Cached: {{date}}</p>
+    <p class="text-muted">Cached: {{date}} UTC</p>
 
     <ul class="list-unstyled">
         {% for sub, posts in saved_items %}
@@ -37,7 +37,7 @@ function loading(page) {
     var text = 'Loading';
     $('.page-header h1').text(text)
 
-        $('#content').hide();
+    $('#content').hide();
 
     var i = 1;
     setInterval(() => {
