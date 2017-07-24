@@ -7,6 +7,9 @@ h5 {
     border-bottom: 1px solid #eaecef;
 }
 </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js">
+</script>
 {% endblock %}
 {% block title %}{{user}}'s Saved Posts{% endblock %}
 {% block header %}{{user}}'s Saved Posts{% endblock %}
@@ -14,8 +17,7 @@ h5 {
 <div id="content">
     <p class="lead">You can save this page by hitting Ctrl-S</p>
 
-    <button type="button" class="btn btn-danger" onclick="loading();">Clear Cache</button>
-    <p class="text-muted">Cached: {{date}} UTC</p>
+    <button type="button" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Cached: {{date}} UTC" onclick="loading();">Clear Cache</button>
 
     <ul class="list-unstyled">
         {% for sub, posts in saved_items %}
@@ -46,5 +48,9 @@ function loading(page) {
 
     location.replace("{{url_for('sp.clear_cache')}}");
 }
+
+$(() => {
+  $('[data-toggle="tooltip"]').tooltip();
+})
 </script>
 {% endblock %}
