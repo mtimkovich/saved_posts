@@ -1,0 +1,129 @@
+from flask import Flask, Blueprint, render_template, request, redirect, \
+                  url_for, abort, session, flash, current_app
+from datetime import datetime
+import os
+import praw
+import random
+import string
+import sys
+
+from praw.models.reddit.submission import Submission
+from praw.models.reddit.comment import Comment
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+import models
+from models import db, User, Post
+
+from flask_sqlalchemy import SQLAlchemy
+
+saved_posts = Blueprint('sp', __name__, template_folder='templates')
+
+reddit = praw.Reddit('saved', redirect_uri='http://localhost:5000/saved_posts/callback')
+
+date_str = '%d-%m-%Y %H:%M'
+
+def generate_state():
+    return ''.join(random.choice(string.ascii_letters + string.digits)
+                   for i in range(8))
+
+
+@saved_posts.record
+def record_params(setup_state):
+    app = setup_state.app
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///saved_posts/saved.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    db.init_app(app)
+
+
+@saved_posts.route('/callback')
+def callback():
+    code = request.args.get('code')
+    state_get = request.args.get('state', '')
+    error = request.args.get('error')
+
+    state = session.get('state')
+
+    if (error is not None or
+            code is None or
+            state is None or
+            state != state_get):
+        abort(403)
+        # TODO: Show on html
+        # flash('Access Denied', 'error')
+        # return redirect(url_for('index'))
+
+    session['refresh'] = reddit.auth.authorize(code)
+    user = reddit.user.me().name
+
+    return render_template('sp/callback.html', redirect=url_for('sp.saved'))
+
+
+@saved_posts.route('/clear_cache')
+def clear_cache():
+    refresh = session.get('refresh')
+
+    if refresh is None:
+        return redirect(url_for('sp.index'))
+
+    reddit = praw.Reddit('saved', refresh_token=refresh)
+    u = User.query.filter_by(name=reddit.user.me().name).first()
+    db.session.delete(u)
+    db.session.commit()
+
+    return redirect(url_for('sp.saved'))
+
+
+@saved_posts.route('/saved')
+def saved():
+    refresh = session.get('refresh')
+
+    if refresh is None:
+        return redirect(url_for('sp.index'))
+
+    reddit = praw.Reddit('saved', refresh_token=refresh)
+
+    redditor = reddit.user.me()
+
+    if User.query.filter_by(name=redditor.name).count():
+        saved_items = models.read_from_db(redditor.name)
+        date = User.query.filter_by(name=redditor.name).first().created
+        date = date.strftime(date_str)
+        return render_template('sp/index.html', user=redditor.name, date=date, saved_items=saved_items)
+
+    subreddits = {}
+    for post in redditor.saved(limit=None):
+        if type(post) is Submission:
+            title = post.title
+            url = 'https://reddit.com' + post.permalink
+
+        elif type(post) is Comment:
+            body = post.body
+            if len(body) > 300:
+                body = body[:300-4] + '...'
+
+            title = body
+            url = 'https://reddit.com' + post.permalink(fast=True)
+
+        sub = post.subreddit.display_name
+
+        if sub not in subreddits:
+            subreddits[sub] = []
+        subreddits[sub].append({'title': title, 'url': url})
+
+    saved_items = sorted(subreddits.items())
+    models.write_to_db(redditor.name, saved_items)
+
+    date = datetime.now().strftime(date_str)
+    return render_template('sp/index.html', user=redditor.name, date=date, saved_items=saved_items)
+
+
+@saved_posts.route('/')
+def index():
+    state = generate_state()
+    session['state'] = state
+    auth_url = reddit.auth.url(['identity', 'history'], state, 'permanent')
+    return render_template('sp/register.html', auth_url=auth_url)

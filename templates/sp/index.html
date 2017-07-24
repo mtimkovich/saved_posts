@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
+        <style>
+            .container {
+                width: auto;
+                max-width: 680px;
+                padding: 0 15px;
+            }
+
+            .container .text-muted {
+                margin: 20px 0;
+            }
+            
+            h5 {
+                padding-top: 0.5rem;
+                padding-bottom: 0.3rem;
+                border-bottom: 1px solid #eaecef;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>{{user}}'s Saved Posts</h1>
+            </div>
+
+            <div id="content">
+                <p class="lead">You can save this page by hitting Ctrl-S</p>
+
+                <button type="button" class="btn btn-danger" onclick="loading();">Clear Cache</button>
+                <p class="text-muted">Cached: {{date}}</p>
+
+                <ul class="list-unstyled">
+                    {% for sub, posts in saved_items %}
+                    <li><h5>{{sub}}</h5>
+
+                        <ol>
+                            {% for post in posts %}
+                            <li><a href="{{post.url}}">{{post.title}}</a></li>
+                            {% endfor %}
+                        </ol>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </body>
+    <script>
+    function loading(page) {
+        var text = 'Loading';
+        $('.page-header h1').text(text)
+
+        $('#content').hide();
+
+        var i = 1;
+        setInterval(() => {
+            $('.page-header h1').text(text + Array(i++ % 7).join('.'));
+        }, 500);
+
+        location.replace("{{url_for('sp.clear_cache')}}");
+    }
+    </script>
+</html>
