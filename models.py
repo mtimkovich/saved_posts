@@ -6,7 +6,7 @@ db = SQLAlchemy()
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), index=True, unique=True)
-    created = db.Column(db.DateTime, server_default=func.now())
+    created = db.Column(db.DateTime(), default=func.now())
     saved = db.relationship('Post', cascade="all,delete-orphan", backref='user', lazy='dynamic')
 
     def __init__(self, name):
