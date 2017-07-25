@@ -16,8 +16,6 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import models
 from models import db, User, Post
 
-from flask_sqlalchemy import SQLAlchemy
-
 saved_posts = Blueprint('sp', __name__, template_folder='templates')
 
 reddit = praw.Reddit('saved', redirect_uri='https://maxtimkovich.com/saved_posts/callback')
