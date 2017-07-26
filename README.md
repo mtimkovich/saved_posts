@@ -1,3 +1,3 @@
 # Saved Posts for Reddit
 
-https://maxtimkovich.com/saved_posts
+Get all your saved reddit posts and organize them by subreddit.
