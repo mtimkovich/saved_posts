@@ -3,6 +3,7 @@ from sqlalchemy.sql import func
 
 db = SQLAlchemy()
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), index=True, unique=True)
@@ -14,6 +15,10 @@ class User(db.Model):
 
     def __repr__(self):
         return 'User({})'.format(self.name)
+
+    def cached(self):
+        return self.created.strftime('%d-%m-%Y %H:%M')
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,14 +37,20 @@ class Post(db.Model):
 
 
 def write_to_db(user, subreddits):
-    u = User(user)
+    u = User.query.filter_by(name=user).first()
+
+    if u is None:
+        u = User(user)
+        db.session.add(u)
 
     for sub, posts in subreddits:
         for post in posts:
             u.saved.append(Post(sub, post['title'], post['url']))
 
-    db.session.add(u)
+    u.created = func.now()
     db.session.commit()
+
+    return u
 
 
 def read_from_db(user):
@@ -53,4 +64,3 @@ def read_from_db(user):
         saved_items[sub].append({'title': post.title, 'url': post.url})
 
     return sorted(saved_items.items())
-

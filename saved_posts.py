@@ -20,7 +20,6 @@ saved_posts = Blueprint('sp', __name__, template_folder='templates')
 
 reddit = praw.Reddit('saved', redirect_uri='https://maxtimkovich.com/saved_posts/callback')
 
-date_str = '%d-%m-%Y %H:%M'
 
 def generate_state():
     return ''.join(random.choice(string.ascii_letters + string.digits)
@@ -60,7 +59,8 @@ def callback():
     return render_template('sp/callback.html', redirect=url_for('sp.saved'))
 
 
-def delete_user():
+@saved_posts.route('/delete')
+def delete():
     refresh = session.get('refresh')
 
     if refresh is None:
@@ -71,17 +71,20 @@ def delete_user():
     db.session.delete(u)
     db.session.commit()
 
-
-@saved_posts.route('/delete')
-def delete():
-    delete_user()
-
     return "removed user's saved posts from cache"
 
 
 @saved_posts.route('/clear_cache')
 def clear_cache():
-    delete_user()
+    refresh = session.get('refresh')
+
+    if refresh is None:
+        return redirect(url_for('sp.index'))
+
+    reddit = praw.Reddit('saved', refresh_token=refresh)
+    u = User.query.filter_by(name=reddit.user.me().name).first()
+    u.saved = []
+    db.session.commit()
 
     return redirect(url_for('sp.saved'))
 
@@ -97,10 +100,11 @@ def saved():
 
     redditor = reddit.user.me()
 
-    if User.query.filter_by(name=redditor.name).count():
+    user = User.query.filter_by(name=redditor.name).first()
+
+    if user is not None and user.saved.count():
         saved_items = models.read_from_db(redditor.name)
-        date = User.query.filter_by(name=redditor.name).first().created
-        date = date.strftime(date_str)
+        date = user.cached()
         return render_template('sp/index.html', user=redditor.name, date=date, saved_items=saved_items)
 
     subreddits = {}
@@ -124,9 +128,10 @@ def saved():
         subreddits[sub].append({'title': title, 'url': url})
 
     saved_items = sorted(subreddits.items())
-    models.write_to_db(redditor.name, saved_items)
+    user = models.write_to_db(redditor.name, saved_items)
 
-    date = datetime.now().strftime(date_str)
+    date = user.cached()
+
     return render_template('sp/index.html', user=redditor.name, date=date, saved_items=saved_items)
 
 
