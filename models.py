@@ -33,7 +33,7 @@ class Post(db.Model):
         self.url = url
 
     def __repr__(self):
-        return 'Post({}, {})'.format(self.title, self.subreddit)
+        return 'Post({}, {}, {})'.format(self.subreddit, self.user, self.title)
 
 
 def write_to_db(user, subreddits):
