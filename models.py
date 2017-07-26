@@ -17,7 +17,7 @@ class User(db.Model):
         return 'User({})'.format(self.name)
 
     def cached(self):
-        return self.created.strftime('%d-%m-%Y %H:%M')
+        return self.created.strftime('%Y-%m-%d %H:%M')
 
 
 class Post(db.Model):

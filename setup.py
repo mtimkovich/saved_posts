@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
+#!python -i
 from models import db, User, Post
 from flask import Flask
-import os
 
 """
 This file sets up the DB for first time run
