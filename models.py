@@ -5,6 +5,8 @@ db = SQLAlchemy()
 
 
 class User(db.Model):
+    __bind_key__ = 'saved'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), index=True, unique=True)
     created = db.Column(db.DateTime(), default=func.now())
@@ -21,6 +23,8 @@ class User(db.Model):
 
 
 class Post(db.Model):
+    __bind_key__ = 'saved'
+
     id = db.Column(db.Integer, primary_key=True)
     subreddit = db.Column(db.String(20))
     title = db.Column(db.String(300))

@@ -1,6 +1,5 @@
 from flask import Flask, Blueprint, render_template, request, redirect, \
                   url_for, abort, session, flash, current_app
-from datetime import datetime
 import os
 import praw
 import random
@@ -10,31 +9,19 @@ import sys
 from praw.models.reddit.submission import Submission
 from praw.models.reddit.comment import Comment
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+import saved_posts.models as models
+from saved_posts.models import db, User, Post
 
-import models
-from models import db, User, Post
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 saved_posts = Blueprint('sp', __name__, template_folder='templates')
 
-reddit = praw.Reddit('saved', redirect_uri='https://maxtimkovich.com/saved_posts/callback')
+reddit = praw.Reddit('saved')
 
 
 def generate_state():
     return ''.join(random.choice(string.ascii_letters + string.digits)
                    for i in range(8))
-
-
-@saved_posts.record
-def record_params(setup_state):
-    app = setup_state.app
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.config['SAVED_DB']
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    db.init_app(app)
-
 
 @saved_posts.route('/callback')
 def callback():
