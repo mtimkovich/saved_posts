@@ -1,16 +1,15 @@
 from flask import Flask, Blueprint, render_template, request, redirect, \
-                  url_for, abort, session, flash, current_app
+                  url_for, abort, session, flash
 import os
 import praw
 import random
 import string
-import sys
 
 from praw.models.reddit.submission import Submission
 from praw.models.reddit.comment import Comment
 
 import saved_posts.models as models
-from saved_posts.models import db, User, Post
+from saved_posts.models import db, User
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
