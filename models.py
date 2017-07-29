@@ -67,4 +67,4 @@ def read_from_db(user):
             saved_items[sub] = []
         saved_items[sub].append({'title': post.title, 'url': post.url})
 
-    return sorted(saved_items.items())
+    return sorted(saved_items.items(), key=lambda s: s[0].lower())

@@ -113,7 +113,7 @@ def saved():
             subreddits[sub] = []
         subreddits[sub].append({'title': title, 'url': url})
 
-    saved_items = sorted(subreddits.items())
+    saved_items = sorted(subreddits.items(), key=lambda s: s[0].lower())
     user = models.write_to_db(redditor.name, saved_items)
 
     date = user.cached()
