@@ -1,15 +1,131 @@
 {% extends "base.html" %}
 {% block head %}
 <style>
-h5 {
-    padding-top: 0.5rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid #eaecef;
+.meta {
+    color: #7a7a7a;
+    font-size: 11px;
 }
 
-.reddit {
-    display: block;
+.layout {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    position: sticky;
+    top: 10px;
+    max-height: calc(100vh - 20px);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-title {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #7a7a7a;
+    padding: 8px 10px 6px;
+    border-bottom: 1px solid #ccc;
+}
+
+.sidebar-list {
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.sidebar a.nav-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 5px 10px;
+    color: #225093;
+    text-decoration: none;
+    border-bottom: 1px solid #edeff1;
+    font-size: 12px;
+}
+.sidebar a.nav-item:last-child {
+    border-bottom: none;
+}
+.sidebar a.nav-item:hover {
+    background: #edeff1;
+    text-decoration: none;
+}
+.sidebar a.nav-item .count {
+    color: #a5a5a5;
+}
+
+.main {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.sub-section {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-bottom: 12px;
+}
+
+.sub-header {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.sub-header .count {
+    font-weight: normal;
+    color: #7a7a7a;
+    font-size: 11px;
+}
+
+.post-row {
+    padding: 6px 10px;
+    border-bottom: 1px solid #edeff1;
     overflow-wrap: break-word;
+}
+.post-row:last-child {
+    border-bottom: none;
+}
+
+@media (max-width: 700px) {
+    .layout {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        border-radius: 0;
+        max-height: none;
+    }
+    .sidebar-title {
+        display: none;
+    }
+    .sidebar-list {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+    .sidebar a.nav-item {
+        flex-shrink: 0;
+        border-bottom: none;
+        border-right: 1px solid #edeff1;
+        white-space: nowrap;
+    }
 }
 </style>
 {% endblock %}
@@ -20,41 +136,50 @@ h5 {
 from reddit. This can take a few minutes if you've saved a lot of posts —
 reddit rate-limits how fast we're allowed to ask for them.</p>
 <div id="content">
-    <form method="post" action="{{url_for('sp.clear_cache')}}" id="clear-cache-form">
-        <button type="submit" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Cached: {{date}} UTC">Clear Cache</button>
-    </form>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
+        <span class="meta">{{total}} saved posts &middot; cached {{date}} UTC</span>
+        <form method="post" action="{{url_for('sp.clear_cache')}}" id="clear-cache-form" style="margin: 0">
+            <button type="submit" class="btn btn-danger">clear cache</button>
+        </form>
+    </div>
 
-    <ul class="list-unstyled">
-        {% for sub, posts in saved_items %}
-        <li><h5>{{sub}}</h5>
-
-            <ol>
-                {% for post in posts %}
-                <li><a class="reddit" href="{{post.url}}">{{post.title}}</a></li>
+    <div class="layout">
+        <div class="sidebar">
+            <div class="sidebar-title">jump to</div>
+            <div class="sidebar-list">
+                {% for sub, posts in saved_items %}
+                <a class="nav-item" href="#sub-{{sub}}"><span>{{sub}}</span><span class="count">{{posts|length}}</span></a>
                 {% endfor %}
-            </ol>
-        </li>
-        {% endfor %}
-    </ul>
+            </div>
+        </div>
+
+        <div class="main">
+            {% for sub, posts in saved_items %}
+            <div class="sub-section" id="sub-{{sub}}">
+                <div class="sub-header">{{sub}} <span class="count">({{posts|length}})</span></div>
+                {% for post in posts %}
+                <div class="post-row"><a href="{{post.url}}">{{post.title}}</a></div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-$('#clear-cache-form').on('submit', () => {
+document.getElementById('clear-cache-form').addEventListener('submit', () => {
     var text = 'Loading';
-    $('.page-header h1').text(text)
+    var header = document.querySelector('.page-header h1');
+    header.textContent = text;
 
-    $('#content').hide();
-    $('#loading-message').show();
+    document.getElementById('content').style.display = 'none';
+    document.getElementById('loading-message').style.display = 'block';
 
     var i = 1;
     setInterval(() => {
-        $('.page-header h1').text(text + Array(i++ % 7).join('.'));
+        header.textContent = text + Array(i++ % 7).join('.');
     }, 500);
 });
-
-$(() => {
-  $('[data-toggle="tooltip"]').tooltip();
-})
 </script>
 {% endblock %}

@@ -4,7 +4,82 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Saved Posts{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="icon" href="https://timkovi.ch/img/blank.png">
+    <style>
+        body {
+            margin: 0;
+            background: #dae0e6;
+            font-family: Verdana, Geneva, sans-serif;
+            font-size: 13px;
+            color: #1c1c1c;
+        }
+
+        a {
+            color: #225093;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .page-header h1 {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 12px;
+        }
+
+        .alert {
+            padding: 8px 12px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+        .alert-warning {
+            background: #fdf3d8;
+            border: 1px solid #e5c76b;
+            color: #6b5314;
+        }
+
+        .btn {
+            display: inline-block;
+            font-family: Verdana, Geneva, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            border-radius: 3px;
+            border: 1px solid transparent;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            text-decoration: none;
+        }
+        .btn-lg {
+            font-size: 15px;
+            padding: 10px 22px;
+        }
+        .btn-success {
+            background: #369a41;
+            border-color: #2c7c35;
+        }
+        .btn-success:hover {
+            background: #2c7c35;
+        }
+        .btn-danger {
+            background: #cc3600;
+            border-color: #a82d00;
+        }
+        .btn-danger:hover {
+            background: #a82d00;
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -17,9 +92,6 @@
     {% endfor %}
     {% block content %}{% endblock %}
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

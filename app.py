@@ -117,7 +117,8 @@ def saved():
     if user is not None and user.saved.count():
         saved_items = models.read_from_db(username)
         date = user.cached()
-        return render_template('index.html', user=username, date=date, saved_items=saved_items)
+        total = sum(len(posts) for _, posts in saved_items)
+        return render_template('index.html', user=username, date=date, saved_items=saved_items, total=total)
 
     # Cache miss: this is the only path that actually needs to talk to reddit.
     redditor = _authed_reddit_user(refresh)
@@ -158,15 +159,19 @@ def saved():
     user = models.write_to_db(username, saved_items)
 
     date = user.cached()
+    total = sum(len(posts) for _, posts in saved_items)
 
-    return render_template('index.html', user=username, date=date, saved_items=saved_items)
+    return render_template('index.html', user=username, date=date, saved_items=saved_items, total=total)
 
 
 @sp.route('/')
 def index():
-    state = generate_state()
-    session['state'] = state
-    auth_url = reddit.auth.url(scopes=['identity', 'history'], state=state, duration='permanent')
+    if session.get('refresh') and session.get('username'):
+        auth_url = url_for('sp.saved')
+    else:
+        state = generate_state()
+        session['state'] = state
+        auth_url = reddit.auth.url(scopes=['identity', 'history'], state=state, duration='permanent')
     return render_template('register.html', auth_url=auth_url)
 
 
