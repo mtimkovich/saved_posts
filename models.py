@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 
@@ -25,7 +27,7 @@ class Post(db.Model):
     subreddit = db.Column(db.String(20))
     title = db.Column(db.String(300))
     url = db.Column(db.Text())
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
 
     def __init__(self, subreddit, title, url):
         self.subreddit = subreddit
@@ -51,6 +53,19 @@ def write_to_db(user, subreddits):
     db.session.commit()
 
     return u
+
+
+def prune_stale(days=365):
+    """Deletes cached users (and their posts, via cascade) whose cache
+    hasn't been refreshed in over `days` days. Returns the number removed."""
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
+    stale = User.query.filter(User.created < cutoff).all()
+
+    for u in stale:
+        db.session.delete(u)
+    db.session.commit()
+
+    return len(stale)
 
 
 def read_from_db(user):

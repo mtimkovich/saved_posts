@@ -4,3 +4,4 @@ praw.ini
 venv*
 *.db
 .env
+upload.sh

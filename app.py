@@ -86,7 +86,17 @@ def delete():
         db.session.delete(u)
         db.session.commit()
 
+    session.pop('refresh', None)
+    session.pop('username', None)
+
     return "removed user's saved posts from cache"
+
+
+@sp.route('/logout', methods=['POST'])
+def logout():
+    session.pop('refresh', None)
+    session.pop('username', None)
+    return redirect(url_for('sp.index'))
 
 
 @sp.route('/clear_cache', methods=['POST'])

@@ -137,10 +137,15 @@ from reddit. This can take a few minutes if you've saved a lot of posts —
 reddit rate-limits how fast we're allowed to ask for them.</p>
 <div id="content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
-        <span class="meta">{{total}} saved posts &middot; cached {{date}} UTC</span>
-        <form method="post" action="{{url_for('sp.clear_cache')}}" id="clear-cache-form" style="margin: 0">
-            <button type="submit" class="btn btn-danger">clear cache</button>
-        </form>
+        <span class="meta">{{'{:,}'.format(total)}} saved posts &middot; cached {{date}} UTC</span>
+        <div style="display: flex; gap: 8px">
+            <form method="post" action="{{url_for('sp.clear_cache')}}" id="clear-cache-form" style="margin: 0">
+                <button type="submit" class="btn btn-danger">re-fetch</button>
+            </form>
+            <form method="post" action="{{url_for('sp.logout')}}" style="margin: 0">
+                <button type="submit" class="btn btn-secondary">log out</button>
+            </form>
+        </div>
     </div>
 
     <div class="layout">
