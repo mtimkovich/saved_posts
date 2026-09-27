@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block head %}
+<style>
+#preview {
+    border: 1px solid #d2d4d7;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+{% block title %}Saved Posts for Reddit{% endblock %}
+{% block header %}Saved Posts for Reddit{% endblock %}
+
+{% block content %}
+<p class="lead">Organizes your saved reddit posts!</p>
+
+<img class="img-fluid" id="preview" src="/img/saved_preview.png">
+
+<p style="padding-top: 1rem">If you're like me, you have a couple <s>hundred</s> thousand things in your "Saved" section on reddit.</p>
+
+<p>Saved Posts nicely organizes all your saved submissions and comments by subreddit for easy browsing.</p>
+
+<center>
+    <a class="btn btn-success btn-lg" href="{{auth_url}}">Try it out!</a>
+</center>
+
+<p><a href="https://github.com/mtimkovich/saved_posts">Source</a></p>
+<p><a href="https://github.com/mtimkovich/saved_posts/blob/master/PrivacyPolicy.md">Privacy Policy</a></p>
+{% endblock %}

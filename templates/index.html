@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block head %}
+<style>
+h5 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #eaecef;
+}
+
+.reddit {
+    display: block;
+    overflow-wrap: break-word;
+}
+</style>
+{% endblock %}
+{% block title %}{{user}}'s Saved Posts{% endblock %}
+{% block header %}{{user}}'s Saved Posts{% endblock %}
+{% block content %}
+<p id="loading-message" style="display: none">Re-fetching your saved posts
+from reddit. This can take a few minutes if you've saved a lot of posts —
+reddit rate-limits how fast we're allowed to ask for them.</p>
+<div id="content">
+    <form method="post" action="{{url_for('sp.clear_cache')}}" id="clear-cache-form">
+        <button type="submit" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Cached: {{date}} UTC">Clear Cache</button>
+    </form>
+
+    <ul class="list-unstyled">
+        {% for sub, posts in saved_items %}
+        <li><h5>{{sub}}</h5>
+
+            <ol>
+                {% for post in posts %}
+                <li><a class="reddit" href="{{post.url}}">{{post.title}}</a></li>
+                {% endfor %}
+            </ol>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+$('#clear-cache-form').on('submit', () => {
+    var text = 'Loading';
+    $('.page-header h1').text(text)
+
+    $('#content').hide();
+    $('#loading-message').show();
+
+    var i = 1;
+    setInterval(() => {
+        $('.page-header h1').text(text + Array(i++ % 7).join('.'));
+    }, 500);
+});
+
+$(() => {
+  $('[data-toggle="tooltip"]').tooltip();
+})
+</script>
+{% endblock %}

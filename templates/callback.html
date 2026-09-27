@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Loading...{% endblock %}
+{% block header %}Loading{% endblock %}
+{% block content %}
+<p>Fetching your saved posts from reddit. This can take a few minutes if
+you've saved a lot of posts — reddit rate-limits how fast we're allowed to
+ask for them. This is a one-time cost, it'll load much faster next time.</p>
+{% endblock %}
+{% block scripts %}
+<script>
+var i = 0;
+var text = 'Loading';
+setInterval(() => {
+    document.querySelector('.page-header h1').textContent = text + Array(i++ % 7).join('.');
+}, 500)
+
+window.location.replace("{{redirect}}");
+</script>
+{% endblock %}

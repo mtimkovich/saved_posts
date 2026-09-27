@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Delete your data{% endblock %}
+{% block header %}Delete your data{% endblock %}
+{% block content %}
+<p>This removes your cached username and saved posts from our database. It
+doesn't affect your reddit account.</p>
+
+<form method="post" action="{{url_for('sp.delete')}}">
+    <button type="submit" class="btn btn-danger">Confirm delete</button>
+</form>
+{% endblock %}

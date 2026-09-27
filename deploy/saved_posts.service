@@ -1,0 +1,21 @@
+[Unit]
+Description=Saved Posts for Reddit (gunicorn)
+After=network.target
+
+[Service]
+# User should be whichever unix user owns the checkout (needs write access
+# to WorkingDirectory for the SQLite file + its journal). Group should be
+# whatever group nginx's worker runs as (so it can reach the socket).
+User=max
+Group=www-data
+WorkingDirectory=/home/max/saved_posts
+
+RuntimeDirectory=saved_posts
+Environment=SECRET_KEY=change-me-to-a-long-random-string
+Environment=DATABASE_URL=sqlite:////home/max/saved_posts/saved_posts.db
+Environment=SESSION_COOKIE_SECURE=true
+ExecStart=/home/max/saved_posts/venv/bin/gunicorn -c deploy/gunicorn_config.py app:app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

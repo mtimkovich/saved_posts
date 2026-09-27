@@ -1,0 +1,6 @@
+__pycache__
+*.swp
+praw.ini
+venv*
+*.db
+.env
