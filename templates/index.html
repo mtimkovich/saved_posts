@@ -187,6 +187,7 @@ document.querySelectorAll('.loading-form').forEach((form) => {
 
         document.getElementById('content').style.display = 'none';
         document.getElementById(form.dataset.message).style.display = 'block';
+        document.querySelectorAll('.flash-message').forEach((el) => el.remove());
 
         var i = 1;
         setInterval(() => {

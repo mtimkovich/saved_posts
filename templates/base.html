@@ -96,7 +96,7 @@
         <h1>{% block header %}{% endblock %}</h1>
     </div>
     {% for message in get_flashed_messages() %}
-    <div class="alert alert-warning" role="alert">{{message}}</div>
+    <div class="alert alert-warning flash-message" role="alert">{{message}}</div>
     {% endfor %}
     {% block content %}{% endblock %}
 </div>
