@@ -71,11 +71,33 @@ def _authed_reddit_user(refresh):
         return None
 
 
+def _post_to_item(post):
+    """Returns (subreddit_name, {'title', 'url'}) for a saved Submission or
+    Comment, or None if it's some other/unrecognized type."""
+    if type(post) is Submission:
+        title = post.title
+        url = 'https://reddit.com' + post.permalink
+
+    elif type(post) is Comment:
+        body = post.body
+        if len(body) > 300:
+            body = body[:300 - 4] + '...'
+
+        title = body
+        url = 'https://reddit.com' + post.permalink
+
+    else:
+        return None
+
+    return post.subreddit.display_name, {'title': title, 'url': url}
+
+
 @sp.route('/delete', methods=['GET', 'POST'])
 def delete():
     username = session.get('username')
 
     if username is None:
+        flash('Please sign in first so we know whose data to delete.')
         return redirect(url_for('sp.index'))
 
     if request.method == 'GET':
@@ -97,6 +119,57 @@ def logout():
     session.pop('refresh', None)
     session.pop('username', None)
     return redirect(url_for('sp.index'))
+
+
+@sp.route('/update', methods=['POST'])
+def update():
+    refresh = session.get('refresh')
+    username = session.get('username')
+
+    if refresh is None or username is None:
+        return redirect(url_for('sp.index'))
+
+    if not models.try_start_sync(username):
+        flash('A refresh is already in progress for your account. Please wait a moment and try again.')
+        return redirect(url_for('sp.saved'))
+
+    try:
+        redditor = _authed_reddit_user(refresh)
+        if redditor is None:
+            session.pop('refresh', None)
+            session.pop('username', None)
+            flash('Your reddit session expired. Please sign in again.')
+            return redirect(url_for('sp.index'))
+
+        user = User.query.filter_by(name=username).first()
+        existing_urls = {post.url for post in user.saved} if user is not None else set()
+
+        # Reddit's saved listing is newest-first, so we can stop as soon as
+        # we see something we've already cached — everything after it is
+        # older and already cached too.
+        new_subreddits = {}
+        try:
+            for post in redditor.saved(limit=None):
+                item = _post_to_item(post)
+                if item is None:
+                    continue
+                sub, data = item
+                if data['url'] in existing_urls:
+                    break
+                new_subreddits.setdefault(sub, []).append(data)
+        except PrawcoreException:
+            flash('Failed to check for new saved posts. Please try again.')
+            return redirect(url_for('sp.saved'))
+
+        new_items = sorted(new_subreddits.items(), key=lambda s: s[0].lower())
+        models.write_to_db(username, new_items)
+
+        total_new = sum(len(posts) for posts in new_subreddits.values())
+        flash('Found {} new saved post(s).'.format(total_new) if total_new else 'No new saved posts found.')
+
+        return redirect(url_for('sp.saved'))
+    finally:
+        models.finish_sync(username)
 
 
 @sp.route('/clear_cache', methods=['POST'])
@@ -131,47 +204,39 @@ def saved():
         return render_template('index.html', user=username, date=date, saved_items=saved_items, total=total)
 
     # Cache miss: this is the only path that actually needs to talk to reddit.
-    redditor = _authed_reddit_user(refresh)
-    if redditor is None:
-        session.pop('refresh', None)
-        session.pop('username', None)
-        flash('Your reddit session expired. Please sign in again.')
-        return redirect(url_for('sp.index'))
+    if not models.try_start_sync(username):
+        flash('A refresh is already in progress for your account. Please wait a moment and try again.')
+        return redirect(url_for('sp.saved'))
 
-    subreddits = {}
     try:
-        for post in redditor.saved(limit=None):
-            if type(post) is Submission:
-                title = post.title
-                url = 'https://reddit.com' + post.permalink
+        redditor = _authed_reddit_user(refresh)
+        if redditor is None:
+            session.pop('refresh', None)
+            session.pop('username', None)
+            flash('Your reddit session expired. Please sign in again.')
+            return redirect(url_for('sp.index'))
 
-            elif type(post) is Comment:
-                body = post.body
-                if len(body) > 300:
-                    body = body[:300 - 4] + '...'
+        subreddits = {}
+        try:
+            for post in redditor.saved(limit=None):
+                item = _post_to_item(post)
+                if item is None:
+                    continue
+                sub, data = item
+                subreddits.setdefault(sub, []).append(data)
+        except PrawcoreException:
+            flash('Failed to fetch your saved posts from reddit. Please try again.')
+            return redirect(url_for('sp.index'))
 
-                title = body
-                url = 'https://reddit.com' + post.permalink
+        saved_items = sorted(subreddits.items(), key=lambda s: s[0].lower())
+        user = models.write_to_db(username, saved_items)
 
-            else:
-                continue
+        date = user.cached()
+        total = sum(len(posts) for _, posts in saved_items)
 
-            sub = post.subreddit.display_name
-
-            if sub not in subreddits:
-                subreddits[sub] = []
-            subreddits[sub].append({'title': title, 'url': url})
-    except PrawcoreException:
-        flash('Failed to fetch your saved posts from reddit. Please try again.')
-        return redirect(url_for('sp.index'))
-
-    saved_items = sorted(subreddits.items(), key=lambda s: s[0].lower())
-    user = models.write_to_db(username, saved_items)
-
-    date = user.cached()
-    total = sum(len(posts) for _, posts in saved_items)
-
-    return render_template('index.html', user=username, date=date, saved_items=saved_items, total=total)
+        return render_template('index.html', user=username, date=date, saved_items=saved_items, total=total)
+    finally:
+        models.finish_sync(username)
 
 
 @sp.route('/')

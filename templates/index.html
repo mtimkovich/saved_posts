@@ -132,14 +132,20 @@
 {% block title %}{{user}}'s Saved Posts{% endblock %}
 {% block header %}{{user}}'s Saved Posts{% endblock %}
 {% block content %}
-<p id="loading-message" style="display: none">Re-fetching your saved posts
+<p id="loading-message-update" style="display: none">Checking reddit for newly
+saved posts. This is usually quick — it stops as soon as it reaches
+something already cached.</p>
+<p id="loading-message-refetch" style="display: none">Re-fetching your saved posts
 from reddit. This can take a few minutes if you've saved a lot of posts —
 reddit rate-limits how fast we're allowed to ask for them.</p>
 <div id="content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
         <span class="meta">{{'{:,}'.format(total)}} saved posts &middot; cached {{date}} UTC</span>
         <div style="display: flex; gap: 8px">
-            <form method="post" action="{{url_for('sp.clear_cache')}}" id="clear-cache-form" style="margin: 0">
+            <form method="post" action="{{url_for('sp.update')}}" class="loading-form" data-message="loading-message-update" style="margin: 0">
+                <button type="submit" class="btn btn-success">update</button>
+            </form>
+            <form method="post" action="{{url_for('sp.clear_cache')}}" class="loading-form" data-message="loading-message-refetch" style="margin: 0">
                 <button type="submit" class="btn btn-danger">re-fetch</button>
             </form>
             <form method="post" action="{{url_for('sp.logout')}}" style="margin: 0">
@@ -173,18 +179,20 @@ reddit rate-limits how fast we're allowed to ask for them.</p>
 {% endblock %}
 {% block scripts %}
 <script>
-document.getElementById('clear-cache-form').addEventListener('submit', () => {
-    var text = 'Loading';
-    var header = document.querySelector('.page-header h1');
-    header.textContent = text;
+document.querySelectorAll('.loading-form').forEach((form) => {
+    form.addEventListener('submit', () => {
+        var text = 'Loading';
+        var header = document.querySelector('.page-header h1');
+        header.textContent = text;
 
-    document.getElementById('content').style.display = 'none';
-    document.getElementById('loading-message').style.display = 'block';
+        document.getElementById('content').style.display = 'none';
+        document.getElementById(form.dataset.message).style.display = 'block';
 
-    var i = 1;
-    setInterval(() => {
-        header.textContent = text + Array(i++ % 7).join('.');
-    }, 500);
+        var i = 1;
+        setInterval(() => {
+            header.textContent = text + Array(i++ % 7).join('.');
+        }, 500);
+    });
 });
 </script>
 {% endblock %}
